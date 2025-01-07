@@ -1,7 +1,6 @@
 package serve
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"os"
@@ -11,31 +10,27 @@ import (
 	"golang.org/x/net/ipv4"
 )
 
-const (
-	MutlicastADDR = "224.0.0.167"
-)
-
-func ServeUDP(ctx context.Context) {
-	l, err := net.ListenPacket("udp4", "0.0.0.0:53317")
+func (s *GoLocalsendServer) ServeUDP() {
+	l, err := net.ListenPacket("udp4", fmt.Sprintf("0.0.0.0:%d", s.config.Port))
 	if err != nil {
 		fmt.Println("listen udp err:", err)
 		os.Exit(-1)
 	}
 	defer l.Close()
 	conn := ipv4.NewPacketConn(l)
-	err = conn.JoinGroup(nil, &net.UDPAddr{IP: net.ParseIP(MutlicastADDR)})
+	err = conn.JoinGroup(nil, &net.UDPAddr{IP: net.ParseIP(s.config.MulticastAddr)})
 	if err != nil {
 		fmt.Println("join mutlicast group err:", err)
 		os.Exit(-1)
 	}
-	defer conn.LeaveGroup(nil, &net.UDPAddr{IP: net.ParseIP(MutlicastADDR)})
+	defer conn.LeaveGroup(nil, &net.UDPAddr{IP: net.ParseIP(s.config.MulticastAddr)})
 	defer conn.Close()
 
 	flag := make(chan struct{})
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-s.ctx.Done():
 				fmt.Println("exited case ctx Done")
 				flag <- struct{}{}
 				return

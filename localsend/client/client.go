@@ -15,7 +15,7 @@ const (
 	RegisterURI = "/api/localsend/v2/register"
 )
 
-func RegisterClient(r *proto.RegisterRequest, addr string, isHttps bool) error {
+func RegisterClient(r *proto.RegisterRequest, addr string, port uint64, isHttps bool) error {
 	b, err := proto.EncodeRegisterRequest(r)
 	proto := "http"
 	if isHttps {
@@ -33,8 +33,8 @@ func RegisterClient(r *proto.RegisterRequest, addr string, isHttps bool) error {
 	hc := &http.Client{
 		Transport: tr,
 	}
-	fmt.Println(fmt.Sprintf("%s://%s:53317%s", proto, addr, RegisterURI))
-	resp, err := hc.Post(fmt.Sprintf("%s://%s:53317%s", proto, addr, RegisterURI), "application/json", bytes.NewReader(b))
+	fmt.Println(fmt.Sprintf("%s://%s:%d%s", proto, addr, port, RegisterURI))
+	resp, err := hc.Post(fmt.Sprintf("%s://%s:%d%s", proto, addr, port, RegisterURI), "application/json", bytes.NewReader(b))
 	if err != nil {
 		if !errors.Is(err, io.EOF) {
 			return err

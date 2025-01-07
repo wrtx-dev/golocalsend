@@ -27,7 +27,7 @@ type Info struct {
 type FileInfo struct {
 	ID       string `json:"id"`
 	FileName string `json:"fileName"`
-	Size     int64  `json:"size"`
+	Size     uint64 `json:"size"`
 	FileType string `json:"fileType"`
 	Sha256   string `json:"sha256"`
 	Preview  string `json:"preview"`
@@ -39,6 +39,11 @@ type FileInfo struct {
 type PreUploadRequest struct {
 	Info  Info                `json:"info"`
 	Files map[string]FileInfo `json:"files"`
+}
+
+type PreUploadResponse struct {
+	SessionID string            `json:"sessionId"`
+	Files     map[string]string `json:"files"`
 }
 
 func ParseRegisterRequest(buf []byte) (*RegisterRequest, error) {
@@ -59,4 +64,8 @@ func ParsePreUploadRequest(b []byte) (*PreUploadRequest, error) {
 	r := &PreUploadRequest{}
 	err := json.Unmarshal(b, r)
 	return r, err
+}
+
+func EncodePreUploadResponse(p *PreUploadResponse) ([]byte, error) {
+	return json.Marshal(p)
 }

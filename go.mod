@@ -5,6 +5,7 @@ go 1.22.0
 toolchain go1.22.10
 
 require (
+	github.com/google/uuid v1.6.0
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 	golang.org/x/net v0.33.0
 )
