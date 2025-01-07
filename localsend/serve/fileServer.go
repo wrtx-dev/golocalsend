@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -109,11 +110,39 @@ func cancelUpload(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func RegisterRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	rr, err := proto.ParseRegisterRequest(body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	addr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	clientChan <- NewClientChan{
+		request: rr,
+		addr:    addr,
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func (s *GoLocalsendServer) HandleFileServer() {
 
 	http.HandleFunc("/api/localsend/v2/prepare-upload", preupload)
 	http.HandleFunc("/api/localsend/v2/upload", upload)
 	http.HandleFunc("/api/localsend/v2/cancel", cancelUpload)
+	http.HandleFunc("/api/localsend/v2/register", RegisterRequest)
 	var server *http.Server
 
 	server = &http.Server{
