@@ -23,6 +23,7 @@ jobs:
 
     - name: Build
       run: |
+        ls
         cd golocalsend
         go build
         mv golocalsend ../
