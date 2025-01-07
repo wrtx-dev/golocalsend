@@ -1,6 +1,6 @@
 # 使用多阶段构建优化镜像大小
 # 第一阶段：构建 Go 程序
-FROM golang:1.22 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . .
 
 # 下载依赖并编译程序
-RUN go mod tidy && go build main.go
+RUN go mod tidy && go build
 
 # 第二阶段：构建最小运行时镜像
 FROM alpine:latest
