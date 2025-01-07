@@ -33,13 +33,11 @@ func RegisterClient(r *proto.RegisterRequest, addr string, port uint64, isHttps 
 	hc := &http.Client{
 		Transport: tr,
 	}
-	fmt.Println(fmt.Sprintf("%s://%s:%d%s", proto, addr, port, RegisterURI))
 	resp, err := hc.Post(fmt.Sprintf("%s://%s:%d%s", proto, addr, port, RegisterURI), "application/json", bytes.NewReader(b))
 	if err != nil {
 		if !errors.Is(err, io.EOF) {
 			return err
 		}
-		fmt.Println("Ignore error EOF")
 	}
 	if resp != nil {
 		defer resp.Body.Close()

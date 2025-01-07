@@ -69,7 +69,6 @@ func upload(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		finshChan <- info.id
 	}()
-	fmt.Println("save path:", info.savePath)
 	absPath, err := filepath.Abs(info.savePath)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -82,7 +81,6 @@ func upload(w http.ResponseWriter, req *http.Request) {
 	}
 	defer fp.Close()
 	b := make([]byte, 4096)
-	tol := 0.0
 	for {
 		n, err := req.Body.Read(b)
 		if err != nil {
@@ -93,13 +91,11 @@ func upload(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 		fp.Write(b[:n])
-		tol += float64(n)
 		if err != nil && errors.Is(io.EOF, err) {
 			break
 		}
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Println("tol:", uint64(tol), tol/1024.0, "k", tol/1024.0/1024.0, "m")
 	return
 }
 
@@ -219,7 +215,6 @@ func (s *GoLocalsendServer) fileRecorder() {
 			preupRespChan <- resp
 		case query := <-queryChan:
 			if q, ok := fileMap[query.fileId]; ok {
-				fmt.Println("filename:", q.name, "size:", q.size)
 				query.ch <- q
 			} else {
 				query.ch <- fileInfo{
@@ -227,7 +222,6 @@ func (s *GoLocalsendServer) fileRecorder() {
 				}
 			}
 		case token := <-finshChan:
-			fmt.Println("finished token:", token)
 			if f, ok := fileMap[token]; ok {
 				if f.status == CANCELED {
 					err := os.Remove(f.savePath)
@@ -240,10 +234,7 @@ func (s *GoLocalsendServer) fileRecorder() {
 		case sessionId := <-cancelChan:
 			for k, v := range fileMap {
 				if v.sessionId == sessionId {
-					fmt.Println("canceled sessionid:", sessionId, "filename:", v.name)
-
 					if v.status == UPLOADING {
-						fmt.Println("set tokon ", k, "canceled")
 						v.status = CANCELED
 						fileMap[k] = v
 					} else {
