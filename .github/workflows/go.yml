@@ -22,6 +22,7 @@ jobs:
         go-version: '1.22'
 
     - name: Build
-      run: cd golocalsend
+      run: |
+        cd golocalsend
         go build
         mv golocalsend ../
