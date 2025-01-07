@@ -1,6 +1,6 @@
 # 使用多阶段构建优化镜像大小
 # 第一阶段：构建 Go 程序
-FROM golang:1.20 AS builder
+FROM golang:1.22 AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -24,7 +24,7 @@ WORKDIR /app
 COPY --from=builder /app/golocalsend .
 
 # 暴露服务端口（可选）
-EXPOSE 8080
+EXPOSE 53317
 
 # 启动程序
 CMD ["./golocalsend"]
