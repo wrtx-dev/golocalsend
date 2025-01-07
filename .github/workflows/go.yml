@@ -22,8 +22,15 @@ jobs:
         go-version: '1.22'
 
     - name: Build
+      id: build
       run: |
         ls
         go mod tidy
         go build
-        cp -v golocalsend ../
+        echo "status=success" >> $GITHUB_OUTPUT
+    - name: upload
+      uses: actions/upload-artifact@v4
+      if: steps.build.outputs.status == 'success' && !cancelled()
+      with:
+        name: golocalsend
+        path: golocalsend
