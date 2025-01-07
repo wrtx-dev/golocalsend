@@ -32,5 +32,5 @@ jobs:
       uses: actions/upload-artifact@v4
       if: steps.build.outputs.status == 'success' && !cancelled()
       with:
-        name: golocalsend
+        name: golocalsend.zip
         path: golocalsend
