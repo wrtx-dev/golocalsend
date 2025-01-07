@@ -3,10 +3,10 @@ name: Build and Publish Multi-Arch Docker Image
 on:
   push:
     branches:
-      - main # 当代码推送到 main 分支时触发
+      - master # 当代码推送到 main 分支时触发
   pull_request: # 在 PR 时触发，用于测试构建
     branches:
-      - main
+      - master
 
 jobs:
   build-and-publish:
