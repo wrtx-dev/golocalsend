@@ -17,7 +17,8 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	App := cli.App{
-		Name: "golocalsend",
+		Name:  "golocalsend",
+		Usage: "A program that partially implements the LocalSend protocol.",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "path",
