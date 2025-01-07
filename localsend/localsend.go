@@ -2,7 +2,6 @@ package localsend
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/wrtx-dev/golocalsend/localsend/config"
 	"github.com/wrtx-dev/golocalsend/localsend/serve"
@@ -19,8 +18,8 @@ func NewApp(config config.LocalsendConfig) (*LocalsendApp, error) {
 	}, nil
 }
 
-func (app *LocalsendApp) Run(ctx context.Context) error {
-	server := serve.NewServer(ctx, &app.Config)
+func (app *LocalsendApp) Run(ctx context.Context, comfirm serve.FComfirmUpload) error {
+	server := serve.NewServer(ctx, &app.Config, comfirm)
 	go server.Serve()
 	return nil
 }
@@ -34,6 +33,5 @@ func randString(n int) string {
 	for i := range b {
 		b[i] = Letters[rand.Int63()%int64(len(Letters))]
 	}
-	fmt.Println("rand string:", string(b))
 	return string(b)
 }

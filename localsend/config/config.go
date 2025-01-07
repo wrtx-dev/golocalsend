@@ -10,7 +10,6 @@ import (
 	"crypto/x509/pkix"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"io"
 	"math/big"
 	"os"
@@ -133,6 +132,5 @@ func randString(n int) string {
 	for i := range b {
 		b[i] = Letters[r.Int63()%int64(len(Letters))]
 	}
-	fmt.Println("rand string:", string(b))
 	return string(b)
 }

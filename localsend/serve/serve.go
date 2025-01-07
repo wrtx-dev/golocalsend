@@ -9,8 +9,9 @@ import (
 )
 
 type GoLocalsendServer struct {
-	ctx    context.Context
-	config config.LocalsendConfig
+	ctx     context.Context
+	config  config.LocalsendConfig
+	comfirm FComfirmUpload
 }
 
 type NewClientChan struct {
@@ -18,10 +19,11 @@ type NewClientChan struct {
 	addr    net.Addr
 }
 
-func NewServer(ctx context.Context, config *config.LocalsendConfig) *GoLocalsendServer {
+func NewServer(ctx context.Context, config *config.LocalsendConfig, comfirm FComfirmUpload) *GoLocalsendServer {
 	return &GoLocalsendServer{
-		ctx:    ctx,
-		config: *config,
+		ctx:     ctx,
+		config:  *config,
+		comfirm: comfirm,
 	}
 }
 

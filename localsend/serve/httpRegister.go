@@ -13,7 +13,6 @@ func (s *GoLocalsendServer) RegisterHTTPClient(machineInfo *proto.RegisterReques
 	for {
 		select {
 		case req := <-clientChan:
-			fmt.Println(req.request)
 			err := client.RegisterClient(machineInfo, req.addr.(*net.UDPAddr).IP.String(), uint64(req.request.Port), strings.ToLower(req.request.Protocol) == "https")
 			if err != nil {
 				fmt.Println("register client err:", err)

@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/wrtx-dev/golocalsend/localsend"
 	"github.com/wrtx-dev/golocalsend/localsend/config"
+	"github.com/wrtx-dev/golocalsend/localsend/proto"
 )
 
 func main() {
@@ -23,12 +25,24 @@ func main() {
 	if err != nil {
 		os.Exit(-1)
 	}
-	cf.SavePath = "/tmp/"
 	app, err := localsend.NewApp(*cf)
 	if err != nil {
 		os.Exit(-1)
 	}
-	if err = app.Run(ctx); err != nil {
+	if err = app.Run(ctx, func(files map[string]proto.FileInfo) (map[string]proto.FileInfo, error) {
+		res := map[string]proto.FileInfo{}
+		for k, v := range files {
+			savePath := filepath.Join(cf.SavePath, v.FileName)
+			if _, err := os.Stat(savePath); err != nil {
+				if os.IsNotExist(err) {
+					res[k] = v
+				} else {
+					fmt.Println("file:", savePath, "exists:", err)
+				}
+			}
+		}
+		return res, nil
+	}); err != nil {
 		os.Exit(-1)
 	}
 	c := make(chan os.Signal, 1)

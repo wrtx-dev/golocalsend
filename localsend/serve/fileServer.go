@@ -20,6 +20,8 @@ const (
 	CANCELED
 )
 
+type FComfirmUpload func(map[string]proto.FileInfo) (map[string]proto.FileInfo, error)
+
 func preupload(w http.ResponseWriter, req *http.Request) {
 
 	body, err := io.ReadAll(req.Body)
@@ -31,27 +33,25 @@ func preupload(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		fmt.Println("parse", string(body), "err:", err)
 	}
-	fmt.Printf("r:%+v\n", r)
 	preupReqChan <- *r
 	resp := <-preupRespChan
+	if len(resp.Files) == 0 {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	respBuf, err := proto.EncodePreUploadResponse(&resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("internal server error"))
 		return
 	}
-	fmt.Printf("resp:%+v\n", resp)
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBuf)
-	fmt.Println(string(respBuf))
 
 }
 
 func upload(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
-	sessionID := query.Get("sessionId")
-	fileId := query.Get("fileId")
-	token := query.Get("token")
 	fileCh := make(chan fileInfo)
 	defer close(fileCh)
 	qi := queryInfo{
@@ -62,7 +62,6 @@ func upload(w http.ResponseWriter, req *http.Request) {
 	}
 	queryChan <- qi
 	info := <-fileCh
-	fmt.Println("sessionId:", sessionID, "fileId:", fileId, "token", token, "info:", info)
 	if info.errMsg != "" {
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -196,7 +195,11 @@ func (s *GoLocalsendServer) fileRecorder() {
 				SessionID: uuidv4.String(),
 				Files:     map[string]string{},
 			}
-			for _, v := range req.Files {
+			files := req.Files
+			if s.comfirm != nil {
+				files, _ = s.comfirm(req.Files)
+			}
+			for _, v := range files {
 				if _, ok := fileMap[v.ID]; ok {
 					break
 				}
