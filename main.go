@@ -6,12 +6,21 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/urfave/cli/v2"
 	"github.com/wrtx-dev/golocalsend/localsend"
 	"github.com/wrtx-dev/golocalsend/localsend/config"
 	"github.com/wrtx-dev/golocalsend/localsend/proto"
+)
+
+const (
+	GOLOCALSEND_PATH  = "GOLOCALSEND_PATH"
+	GOLOCALSEND_HTTPS = "GOLOCALSEND_HTTPS"
+	GOLOCALSEND_PORT  = "GOLOCALSEND_PORT"
+	GOLOCALSEND_ALIAS = "GOLOCALSEND_ALIAS"
 )
 
 func main() {
@@ -28,12 +37,17 @@ func main() {
 			&cli.BoolFlag{
 				Name:  "https",
 				Usage: "use https request/response",
-				Value: false,
+				Value: true,
 			},
 			&cli.StringFlag{
 				Name:  "alias",
 				Usage: "set instance's alias",
 				Value: "go local send server",
+			},
+			&cli.IntFlag{
+				Name:  "port",
+				Usage: "set listen port,both tcp and udp",
+				Value: 53317,
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -41,16 +55,43 @@ func main() {
 			if err != nil {
 				return err
 			}
-			sp := c.String("path")
-			cf.SavePath = sp
+			cf.SavePath = os.Getenv(GOLOCALSEND_PATH)
+			if cf.SavePath == "" {
+				sp := c.String("path")
+				if sp != "" {
+					cf.SavePath = sp
+				}
+			}
+			https := false
+			httpsFlag := os.Getenv(GOLOCALSEND_HTTPS)
+			if httpsFlag == "" {
+				https = c.Bool("https")
+			} else {
+				https = strings.ToLower(httpsFlag) == "true"
+			}
 
-			https := c.Bool("https")
 			if !https {
 				cf.HTTPS = false
 				cf.Cert = nil
 			}
-			alias := c.String("alias")
-			cf.Alias = alias
+			alias := os.Getenv(GOLOCALSEND_ALIAS)
+			if alias == "" {
+				alias = c.String("alias")
+			}
+			if alias != "" {
+				cf.Alias = alias
+			}
+
+			portStr := os.Getenv(GOLOCALSEND_PORT)
+			if portStr == "" {
+				cf.Port = uint(c.Int("port"))
+			} else {
+				port, err := strconv.Atoi(portStr)
+				if err != nil {
+					return err
+				}
+				cf.Port = uint(port)
+			}
 			app, err := localsend.NewApp(*cf)
 			if err != nil {
 				return err
